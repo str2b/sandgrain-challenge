@@ -76,17 +76,23 @@ public class Board {
 		}
 	}
 
-	public void increaseHeight(Point pt) throws OutOfRangeException {
-		Field f = this.getField(pt);
+	public void increaseHeight(Point pt) {
+		Field f;
 		try {
-			f.increase();
-		} catch (OutOfSpaceException e) {
-			f.collapse();
-			List<Point> neighboringPoints = getNeighboringPoints(pt);
-			for (Point neighborPoint : neighboringPoints) {
-				increaseHeight(neighborPoint);
+			f = this.getField(pt);
+			try {
+				f.increase();
+			} catch (OutOfSpaceException e) {
+				f.collapse();
+				List<Point> neighboringPoints = getNeighboringPoints(pt);
+				for (Point neighborPoint : neighboringPoints) {
+					increaseHeight(neighborPoint);
+				}
 			}
+		} catch (OutOfRangeException e1) {
+			/* act as if out-of-range fields can take unlimited grains */
 		}
+
 	}
 
 	@Override
@@ -116,18 +122,19 @@ public class Board {
 	}
 
 	public void writeCoordinatesCsv(String fileName, String seperator) {
-        List<String> lines = new LinkedList<>();
+		List<String> lines = new LinkedList<>();
 		for (int y = yRange.getMin(); y <= yRange.getMax(); y++) {
 			for (int x = xRange.getMin(); x <= xRange.getMax(); x++) {
 				try {
-					lines.add(String.format("%d%s%d%s%d", x, seperator, y, seperator, getField(new Point(x, y)).getHeight()));
+					lines.add(String.format("%d%s%d%s%d", x, seperator, y, seperator,
+							getField(new Point(x, y)).getHeight()));
 				} catch (OutOfRangeException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-        Path path = Paths.get(fileName);
-        try {
+		Path path = Paths.get(fileName);
+		try {
 			Files.write(path, lines, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			e.printStackTrace();
